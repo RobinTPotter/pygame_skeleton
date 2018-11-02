@@ -61,8 +61,9 @@ FONT_HEIGHT = font.size('X')[1]
 MODE_MAIN = 'MAIN'
 MODE_DEFINE_CONTROLS = 'DEFINE_CONTROLS'
 MODE_TWO = 'TWO'
-GAME_MODES = [MODE_DEFINE_CONTROLS, MODE_MAIN, MODE_TWO]
-CURRENT_MODE = GAME_MODES[0]
+GAME_MODE = {}
+GAME_MODE['GAME_MODES'] = [MODE_DEFINE_CONTROLS, MODE_MAIN, MODE_TWO]
+GAME_MODE['CURRENT_MODE'] = GAME_MODE['GAME_MODES'][0]
 
 ##https://learn.adafruit.com/pi-video-output-using-pygame/pointing-pygame-to-the-framebuffer
 ##stolen from here with grateful thanks
@@ -78,6 +79,9 @@ class main_screen :
         {'name': 'right', 'button': None, 'key': None}, 
         {'name': 'fire', 'button': None, 'key': None}    
     ]
+    
+    used_buttons = []
+    used_keys = []
     
     control_index = 0
         
@@ -159,8 +163,13 @@ class main_screen :
                     
                 self.tick+=1
                 
+                if self.tick%100==0: print (GAME_MODE['CURRENT_MODE'])
+                
                 red = (0, 0, 0)
                 self.screen.fill(red)
+                 
+                key_number = None
+                button_number = None
                  
                 # EVENT PROCESSING STEP
                 # heavily doctored from Adafruit example
@@ -172,9 +181,13 @@ class main_screen :
                     if event.type == pg.JOYBUTTONDOWN or ( event.type == pg.KEYDOWN ):
                         if 'button' in event.dict:
                             self.output("Joystick button {0} pressed".format(event.button))
+                            print(self.used_buttons)
+                            button_number = event.button
                             
                         if 'key' in event.dict:
                             self.output("Key {0} pressed".format(event.key))
+                            print(self.used_keys)
+                            key_number = event.key
                         
                     if event.type == pg.JOYBUTTONUP or ( event.type == pg.KEYUP ):
                         if 'button' in event.dict:
@@ -183,9 +196,14 @@ class main_screen :
                         if 'key' in event.dict:
                             self.output("Key {0} released".format(event.key))
                 
-                if CURRENT_MODE is MODE_DEFINE_CONTROLS:
-                    # update logic for this mode
+                if GAME_MODE['CURRENT_MODE'] is MODE_DEFINE_CONTROLS:
+                    
+                    ## noddy bit for define controls
+                    
+                    #define start position (y) for list of controls
                     yy = ( HEIGHT / 2 ) - (len(self.controls) * (FONT_HEIGHT+2)) /2 
+                    
+                    # go through list of control and high light the current one
                     for p in range(len(self.controls)):                    
                         if p==self.control_index: colour = (255,255,128)
                         else: colour = (128,128,128)
@@ -193,14 +211,30 @@ class main_screen :
                         panel = font.render(thing, True, (0, 0, 0), colour)
                         self.screen.blit(panel, ((WIDTH / 2) - panel.get_width() / 2 , yy))
                         yy += FONT_HEIGHT + 2
+                    
+                    # if a button is pressed and not already assigned to a control ...
+                    if button_number is not None and button_number not in self.used_buttons:
+                        self.controls[self.control_index]['button'] = button_number
+                        self.used_buttons = [c['button'] for c in self.controls]
+                        self.control_index += 1
+                    
+                    # if a key is pressed and not already assigned to a control ...
+                    if key_number is not None and key_number not in self.used_keys:
+                        self.controls[self.control_index]['key'] = key_number
+                        self.control_index += 1
+                        self.used_keys = [c['key'] for c in self.controls]
+                        
+                    # if the list of controls is exhasusted, move on
+                    if self.control_index == len(self.controls):
+                        GAME_MODE['CURRENT_MODE'] = MODE_MAIN
                         
                     pass
                 
-                if CURRENT_MODE is MODE_MAIN:
+                if GAME_MODE['CURRENT_MODE'] is MODE_MAIN:
                     # update logic for this mode
                     pass
                     
-                elif CURRENT_MODE is MODE_TWO:
+                elif GAME_MODE['CURRENT_MODE'] is MODE_TWO:
                     # update logic for this other mode
                     pass                            
           
