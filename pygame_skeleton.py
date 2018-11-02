@@ -15,8 +15,6 @@ joystick = None
 
 pg.font.init()
 font = pg.font.SysFont(None, 12)
-print (font)
-
 
 ## set config file name and define config load/save functions
 
@@ -56,6 +54,9 @@ pg.display.set_mode(config['size'])
 FPS = config['FPS']
 VISIBLE_MOUSE = config['VISIBLE_MOUSE']
 MESSAGE_LENGTH = config['MESSAGE_LENGTH']
+WIDTH = config['size'][0]
+HEIGHT = config['size'][1]
+FONT_HEIGHT = font.size('X')[1]
 
 MODE_MAIN = 'MAIN'
 MODE_DEFINE_CONTROLS = 'DEFINE_CONTROLS'
@@ -77,6 +78,8 @@ class main_screen :
         {'name': 'right', 'button': None, 'key': None}, 
         {'name': 'fire', 'button': None, 'key': None}    
     ]
+    
+    control_index = 0
         
     def __init__(self):
         "Ininitializes a new pg screen using the framebuffer"
@@ -108,7 +111,7 @@ class main_screen :
         
         size = (pg.display.Info().current_w, pg.display.Info().current_h)
         print("Framebuffer size: {0} x {1}".format(size[0], size[1]))
-        self.screen = pg.display.set_mode(size, pg.FULLSCREEN)
+        self.screen = pg.display.set_mode(size) #, pg.FULLSCREEN)
         # Clear the screen to start
         self.screen.fill((0, 0, 0))        
         # Initialise font support
@@ -136,8 +139,6 @@ class main_screen :
                     self.output("{0} initialized".format(name))
         except:
             self.output("no joysticks")
-            
-            
             
     ##one line feed back to screen, setting a opacity/counter for fade out
     def output(self, message):
@@ -182,10 +183,17 @@ class main_screen :
                         if 'key' in event.dict:
                             self.output("Key {0} released".format(event.key))
                 
-                SCREEN_UPDATE = True
-                
                 if CURRENT_MODE is MODE_DEFINE_CONTROLS:
                     # update logic for this mode
+                    yy = ( HEIGHT / 2 ) - (len(self.controls) * (FONT_HEIGHT+2)) /2 
+                    for p in range(len(self.controls)):                    
+                        if p==self.control_index: colour = (255,255,128)
+                        else: colour = (128,128,128)
+                        thing = self.controls[p]['name']
+                        panel = font.render(thing, True, (0, 0, 0), colour)
+                        self.screen.blit(panel, ((WIDTH / 2) - panel.get_width() / 2 , yy))
+                        yy += FONT_HEIGHT + 2
+                        
                     pass
                 
                 if CURRENT_MODE is MODE_MAIN:
@@ -195,28 +203,18 @@ class main_screen :
                 elif CURRENT_MODE is MODE_TWO:
                     # update logic for this other mode
                     pass                            
-                    
-                if SCREEN_UPDATE:                    
-                    
-                    ## update screen here
-                    
-                    m = pg.mouse.get_pos()
-                    mx,my = m[0],m[1]
-                    if prev_m!=m: self.output("mouse {0},{1}".format(mx,my))
-                    
-                    if self.textsurface_counter > 0:
-                        self.screen.blit(self.textsurface,(0,0))
-                        self.textsurface.set_alpha(self.textsurface_counter)
-                        self.textsurface_counter -= 10
-                     
-                    ## added a clock to control FPS
-                    clock.tick(FPS)
-                    
-                    ## update screen
-                    pg.display.flip()
-                    
-                    ## retain prev mouse pos
-                    prev_m = m
+          
+                if self.textsurface_counter > 0:
+                    self.screen.blit(self.textsurface,(0,0))
+                    self.textsurface.set_alpha(self.textsurface_counter)
+                    self.textsurface_counter -= 10
+                
+                ## added a clock to control FPS
+                clock.tick(FPS)
+                
+                ## update screen
+                pg.display.flip()
+                
                 
         except Exception as al:
             print("{0}".format(al))
