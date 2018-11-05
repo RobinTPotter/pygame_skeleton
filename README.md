@@ -9,7 +9,7 @@ MODE_DEFINE_CONTROLS = 'DEFINE_CONTROLS'
 MODE_TWO = 'TWO'
 GAME_MODE = {}
 GAME_MODE['GAME_MODES'] = [MODE_DEFINE_CONTROLS, MODE_MAIN, MODE_TWO]
-GAME_MODE['CURRENT_MODE'] = mode['GAME_MODES'][0]
+GAME_MODE['CURRENT_MODE'] = GAME_MODE['GAME_MODES'][0]
 ```
 
 a mechanism to define controls based on a dict inside the main_screen class:
